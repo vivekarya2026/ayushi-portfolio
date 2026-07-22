@@ -59,15 +59,27 @@ export function SquiggleArt({ strokeColor = "var(--color-accent)" }: SquiggleArt
 
   const [lengths, setLengths] = useState<{ a: number; b: number; c: number } | null>(null);
 
-  // Scrub as the section rises from near the bottom of the viewport (95%) to
-  // its middle (50%). Completing at mid-viewport — rather than the old "near
-  // the top" (0.08) — means the reveal finishes at a scroll position EVERY
-  // viewport can reach. On tall screens the page bottomed out (footer too
-  // short to push the art to the top) before progress hit 0.85, so the
-  // heart-hands never appeared. Mid-viewport is always reachable.
+  // The squiggle's on-screen height differs hugely by breakpoint (~66–75% of
+  // the viewport on desktop, ~22% on mobile), so the completion point has to
+  // adapt:
+  //   · Desktop — the art is tall, so finish only once its top is near the top
+  //     of the viewport, otherwise the arms + heart-hands sit below the fold.
+  //   · Mobile  — the art is short AND a tall phone bottoms the page out before
+  //     it can scroll that high, so finish at mid-viewport (always reachable).
+  // Starts false so SSR and first client render agree; a mount effect corrects
+  // it. useScroll re-reads the offset when this value changes.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
   const { scrollYProgress } = useScroll({
     target: wrapRef,
-    offset: ["start 0.95", "start 0.5"],
+    offset: isMobile ? ["start 0.95", "start 0.5"] : ["start 0.9", "start 0.14"],
   });
 
   // Measure path lengths once mounted
