@@ -1,26 +1,1119 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* — Color tokens (OKLCH) — */
+  --color-canvas: oklch(0.97 0.008 80);
+  --color-canvas-dark: oklch(0.93 0.012 80);
+  --color-ink: oklch(0.15 0.01 80);
+  --color-ink-soft: oklch(0.45 0.015 55);
+  --color-line: oklch(0.90 0.012 80);
+  --color-accent: oklch(0.55 0.19 35);
+  --color-accent-ink: oklch(0.42 0.14 35);
+  --color-pit: oklch(0.12 0.008 80);
+
+  /* — Typography — */
+  /* Swap point: to change either font later, change the import in
+     app/layout.tsx and nothing else needs to change. --font-display is
+     reserved for exactly two moments (hero headline, footer signature);
+     --font-sans is the single workhorse for every other heading and body. */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* — Timing tokens — */
+  --duration-instant: 50ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-moderate: 400ms;
+  --duration-slow: 600ms;
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* — Container — */
+  --container-max: 1400px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* — Dark-surface tokens (hero + dark sections keep the reference look) — */
+:root {
+  --ref-bg-dark: #0b0c0f;
+  --ref-outline-dark: #2e313a;
+}
+
+/* ================================================================== */
+/* Design system — semantic type roles, buttons, section rhythm.       */
+/* One accent (--color-accent), one eyebrow, one heading scale.        */
+/* In @layer components so Tailwind utilities can override per-site.   */
+/* ================================================================== */
+@layer components {
+
+/* Type roles */
+.type-h1 {
+  font-size: clamp(2.5rem, 6vw, 3.5rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.type-display-title {
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.type-h2 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.type-title {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-size: clamp(1.4rem, 3vw, 2.35rem);
+  line-height: 1.15;
+}
+/* One header structure per section, sitewide: [mono eyebrow] → [heading] →
+   [supporting paragraph if needed], always centered. */
+.section-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+/* "Mono ledger" labels — the site's one deliberate label system */
+.type-eyebrow {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  color: var(--color-ink-soft);
+}
+.type-eyebrow.is-dark {
+  color: rgba(245, 245, 245, 0.55);
+}
+.type-body {
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 65ch;
+  text-wrap: pretty;
+}
+.type-body-sm {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  max-width: 45ch;
+  text-wrap: pretty;
+}
+@media (min-width: 768px) {
+  .type-body {
+    font-size: 1.125rem;
+  }
+}
+
+/* Button kit */
+.btn-primary,
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.7rem 1.75rem;
+  border-radius: 100rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+/* Accent commits to real surface area here (primary CTA fill, outline-hover
+   fill) rather than staying a thin line — the one saturated color the site
+   is built around, carrying weight instead of just accenting edges. */
+.btn-primary {
+  background-color: var(--color-accent);
+  color: var(--color-canvas);
+  transition: background-color var(--duration-normal) var(--ease-out-expo);
+}
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background-color: var(--color-accent-ink);
+}
+/* Stroked button — ink hairline on the cream canvas (header + hero CTA),
+   filling with the accent and going white on hover. */
+.btn-outline {
+  border: 1px solid color-mix(in oklch, var(--color-ink) 24%, transparent);
+  color: var(--color-ink);
+  text-transform: uppercase;
+  transition:
+    border-color 0.35s cubic-bezier(0.6, 0, 0.2, 1),
+    background-color 0.35s cubic-bezier(0.6, 0, 0.2, 1),
+    color 0.35s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.btn-outline:hover,
+.btn-outline:focus-visible {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+  color: #fff;
+}
+/* On the near-black footer surface the same button reads light-on-dark. */
+footer .btn-outline {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.24);
+}
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 100rem;
+  border: 1px solid rgba(245, 245, 245, 0.15);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #f5f5f5;
+  transition:
+    background-color var(--duration-normal) var(--ease-out-expo),
+    border-color var(--duration-normal) var(--ease-out-expo);
+}
+.btn-icon:hover,
+.btn-icon:focus-visible {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-accent);
+}
+
+/* Section rhythm — the single vertical cadence (2 sizes + page top) */
+.section-pad {
+  padding-block: 6rem;
+}
+.section-pad-sm {
+  padding-block: 4rem;
+}
+.page-top {
+  padding-top: 8rem;
+}
+@media (min-width: 768px) {
+  .section-pad {
+    padding-block: 8rem;
+  }
+  .section-pad-sm {
+    padding-block: 6rem;
+  }
+  .page-top {
+    padding-top: 10rem;
+  }
+}
+
+} /* end @layer components */
+
+/* Animatable custom property for the LottieHeart wipe reveal. Registering it
+   lets CSS transition the mask edge (percentages don't interpolate otherwise). */
+@property --reveal {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+::selection {
+  background-color: oklch(0.55 0.19 35 / 0.2);
+  color: var(--color-ink);
+}
+
+/* Smooth scroll with reduced-motion override */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Skip to content link */
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-ink);
+  color: var(--color-canvas);
+  border-radius: 0 0 0.5rem 0.5rem;
+  font-size: 0.875rem;
+  transition: top var(--duration-fast) var(--ease-out-expo);
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* Card glow-line — yaros pattern */
+.card-glow {
+  position: relative;
+}
+.card-glow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, oklch(0.55 0.19 35 / 0.5), transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 10;
+  border-radius: 1px;
+}
+.card-glow:hover::before {
+  opacity: 1;
+}
+
+/* 3D preserve for carousel */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* About headline gradient fill (Reference 5) */
+.about-gradient-text {
+  background-image: linear-gradient(45deg, var(--color-ink), var(--color-ink-soft));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* About headline on the dark fold stage — light ramp for contrast */
+.about-gradient-text-dark {
+  background-image: linear-gradient(45deg, #ffffff, #c8c8c2);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Alarm card (Phase A) — base surface + ringing wobble + breathing glow */
+.alarm-card {
+  background: oklch(0.55 0.19 35 / 0.08);
+  border: 1px solid oklch(0.55 0.19 35 / 0.45);
+  box-shadow:
+    0 0 0 0 oklch(0.55 0.19 35 / 0.12),
+    inset 0 1px 0 oklch(0.75 0.12 35 / 0.15);
+}
+
+.alarm-ringing {
+  animation:
+    alarm-wobble 0.3s ease-in-out infinite,
+    alarm-glow 1.2s ease-in-out infinite;
+}
+
+@keyframes alarm-wobble {
+  0% { transform: rotate(-1.5deg); }
+  50% { transform: rotate(1.5deg); }
+  100% { transform: rotate(-1.5deg); }
+}
+
+@keyframes alarm-glow {
+  0%,
+  100% { box-shadow: 0 0 40px 0 oklch(0.55 0.19 35 / 0.10); }
+  50% { box-shadow: 0 0 80px 16px oklch(0.55 0.19 35 / 0.30); }
+}
+
+/* Snooze label shimmer (Phase B) — left→right sweep on the text */
+.snooze-shimmer {
+  color: transparent;
+  background-image: linear-gradient(
+    100deg,
+    #999999 0%,
+    #999999 35%,
+    #ffffff 50%,
+    #999999 65%,
+    #999999 100%
+  );
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: snooze-shimmer-sweep 2s linear infinite;
+}
+
+@keyframes snooze-shimmer-sweep {
+  0% { background-position: 120% center; }
+  100% { background-position: -120% center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alarm-ringing {
+    animation: none;
+  }
+  .snooze-shimmer {
+    animation: none;
+    color: #888;
+    -webkit-text-fill-color: #888;
+  }
+}
+
+/* Card-flip gallery — animated CSS "reel" back face (stands in for a video) */
+.cfg-reel {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 20% 15%, oklch(0.55 0.19 35 / 0.55), transparent 60%),
+    radial-gradient(120% 90% at 85% 80%, oklch(0.55 0.14 260 / 0.5), transparent 60%),
+    linear-gradient(135deg, #141414, #0a0a0a);
+}
+.cfg-reel-grid {
+  position: absolute;
+  inset: -20%;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  transform: perspective(400px) rotateX(55deg);
+  transform-origin: center bottom;
+  opacity: 0.7;
+}
+.cfg-reel-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    60% 50% at 50% 50%,
+    oklch(0.55 0.19 35 / 0.35),
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+}
+.cfg-reel-play .cfg-reel-grid {
+  animation: cfg-reel-scroll 2.2s linear infinite;
+}
+.cfg-reel-play .cfg-reel-glow {
+  animation: cfg-reel-breathe 2.6s ease-in-out infinite;
+}
+@keyframes cfg-reel-scroll {
+  from { background-position: 0 0; }
+  to { background-position: 0 44px; }
+}
+@keyframes cfg-reel-breathe {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cfg-reel-play .cfg-reel-grid,
+  .cfg-reel-play .cfg-reel-glow {
+    animation: none;
+  }
+}
+
+/* ================================================================== */
+/* Shared RolloverMask — double-text vertical swap on hover/focus      */
+/* ================================================================== */
+.rollover-mask {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.1;
+  vertical-align: bottom;
+}
+.rollover-top,
+.rollover-bottom {
+  display: block;
+  transition: transform 0.35s cubic-bezier(0.6, 0, 0.2, 1);
+  will-change: transform;
+}
+.rollover-bottom {
+  position: absolute;
+  inset: 0;
+  transform: translateY(100%);
+}
+.rollover-trigger:hover .rollover-top,
+.rollover-trigger:focus-visible .rollover-top,
+.rollover-mask:hover .rollover-top,
+.rollover-mask:focus-visible .rollover-top {
+  transform: translateY(-100%);
+}
+.rollover-trigger:hover .rollover-bottom,
+.rollover-trigger:focus-visible .rollover-bottom,
+.rollover-mask:hover .rollover-bottom,
+.rollover-mask:focus-visible .rollover-bottom {
+  transform: translateY(0);
+}
+
+/* Chevron fly-through clip (dropdown links) */
+.chev-clip {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  overflow: hidden;
+  transition: color 0.3s ease;
+}
+.chev {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.chev-second {
+  transform: translateX(-150%);
+}
+.nav-drop-link:hover .chev-clip,
+.nav-drop-link:focus-visible .chev-clip {
+  color: var(--color-accent);
+}
+.nav-drop-link:hover .chev-first,
+.nav-drop-link:focus-visible .chev-first {
+  transform: translateX(150%);
+}
+.nav-drop-link:hover .chev-second,
+.nav-drop-link:focus-visible .chev-second {
+  transform: translateX(0);
+}
+
+/* Visible focus rings on brand-accent */
+.focus-accent:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ================================================================== */
+/* Home Hero — wordmark + character card, pose-synced bubble, sticker  */
+/* spread. Light canvas, one accent; --font-display bookends w/footer. */
+/* ================================================================== */
+/* Hero fills the viewport and centres its whole stack (heading · card ·
+   subheading · CTA) optically in the middle of the page. */
+.hero-section {
+  position: relative;
+  overflow: clip;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+}
+.hero-inner {
+  width: min(1400px, 94vw);
+  margin-inline: auto;
+  padding-block: 6rem 4rem;
+}
+@media (min-width: 768px) {
+  .hero-inner {
+    padding-block: 7rem 5rem;
+  }
+}
+
+/* ---- heading row ("Hey, I'm" · card · "Ayushi") ---- */
+.hero-word-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 3vw, 44px);
+  margin: 0;
+  text-align: center;
+  opacity: 0;
+  animation: hero-fade-in 0.5s ease forwards;
+}
+@keyframes hero-fade-in {
+  to {
+    opacity: 1;
+  }
+}
+.hero-word {
+  font-family: var(--font-sans), sans-serif;
+  font-size: clamp(38px, 8vw, 112px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+}
+/* The two words are unequal widths ("Hey, I'm" vs "Ayushi"), so centring the
+   row alone would push the card off-centre. Giving both an equal flex basis
+   and pointing them inward parks the card on the exact centre of the page. */
+@media (min-width: 768px) {
+  .hero-word {
+    flex: 1 1 0;
+  }
+  .hero-word-left {
+    text-align: right;
+  }
+  .hero-word-right {
+    text-align: left;
+  }
+  .hero-tilt {
+    flex: 0 0 auto;
+  }
+}
+
+/* ---- character card ---- */
+.hero-tilt {
+  position: relative;
+  flex-shrink: 0;
+  transition: transform 0.25s ease-out;
+  transform-style: preserve-3d;
+}
+.hero-card {
+  --hero-card-w: clamp(140px, 17vw, 230px);
+  --hero-card-h: clamp(200px, 27vw, 330px);
+  position: relative;
+  display: block;
+  width: var(--hero-card-w);
+  height: var(--hero-card-h);
+  padding: 0;
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  background: radial-gradient(
+    120% 100% at 50% 0%,
+    var(--color-accent) 0%,
+    var(--color-accent-ink) 100%
+  );
+  box-shadow: 0 18px 40px -18px oklch(0.42 0.14 35 / 0.45);
+  transition: width 0.9s cubic-bezier(0.34, 1.45, 0.44, 1);
+}
+.hero-card.is-shut {
+  width: 2px;
+  transition: width 0.3s cubic-bezier(0.6, 0, 0.8, 0.4);
+}
+.hero-card.is-gone {
+  width: 0;
+  box-shadow: none;
+  transition: width 0.25s ease-in;
+}
+.hero-card.is-dropin {
+  animation: hero-card-dropin 0.7s cubic-bezier(0.34, 1.4, 0.44, 1);
+}
+@keyframes hero-card-dropin {
+  from {
+    transform: translateY(-120%);
+  }
+  70% {
+    transform: translateY(6%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.hero-card-pose {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.hero-card-pose.is-visible {
+  opacity: 1;
+}
+.hero-card-pose img {
+  object-fit: contain;
+  animation: hero-floaty 4.5s ease-in-out infinite;
+}
+@keyframes hero-floaty {
+  0%,
+  100% {
+    transform: translateY(4px) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1.2deg);
+  }
+}
+
+.hero-bubble {
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  transform: translate(-50%, 10px) scale(0.6);
+  transform-origin: bottom center;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+  transition:
+    opacity 0.25s ease,
+    transform 0.45s cubic-bezier(0.34, 1.56, 0.44, 1);
+}
+.hero-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  background: var(--color-canvas);
+  transform: translateX(-50%) rotate(45deg);
+  border-radius: 2px;
+}
+.hero-bubble.is-show {
+  opacity: 1;
+  transform: translate(-50%, -100%) scale(1);
+}
+
+.hero-hint {
+  position: absolute;
+  left: 50%;
+  bottom: -30px;
+  transform: translateX(-50%);
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+  user-select: none;
+  opacity: 0;
+  animation: hero-fade-in 1s ease 3.2s forwards;
+}
+
+/* ---- flung stickers + confetti (portaled to document.body) ---- */
+.hero-mini {
+  position: fixed;
+  width: 64px;
+  height: 64px;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  z-index: 50;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25));
+}
+.hero-mini:active {
+  cursor: grabbing;
+}
+.hero-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+.hero-confetti {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 99;
+}
+/* ---- centered subheading + cta ---- */
+.hero-bottom {
+  margin-top: clamp(32px, 6vh, 64px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(20px, 3vh, 32px);
+  text-align: center;
+}
+.hero-subheading {
+  max-width: 620px;
+  color: var(--color-ink-soft);
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .hero-hint {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-section,
+  .hero-section * {
+    animation: none !important;
+    transition: none !important;
+  }
+  .hero-word-row {
+    opacity: 1 !important;
+  }
+  .hero-card {
+    width: var(--hero-card-w) !important;
+  }
+  .hero-hint {
+    opacity: 1;
+  }
+}
+.ref-letter {
+  display: inline-block;
+  position: relative;
+}
+
+/* Outro caption — in flow (and centred) on narrow screens, where the artwork
+   is too small to host an overlay; absolutely positioned over the squiggle's
+   open right-hand space from md up. */
+.outro-caption {
+  position: static;
+  width: 100%;
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: clamp(1.15rem, 5.2vw, 1.6rem);
+}
+@media (min-width: 768px) {
+  .outro-caption {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    width: clamp(200px, 36%, 400px);
+    margin-top: 0;
+    text-align: left;
+    font-size: clamp(1.2rem, 3.2vw, 2.1rem);
+  }
+}
+
+/* The hero reads as a balanced stack on phones — "Hey, I'm" / card / "Ayushi"
+   centred — rather than the card crowding the first line and orphaning the
+   name onto a second. */
+@media (max-width: 767px) {
+  .hero-word-row {
+    flex-direction: column;
+    gap: clamp(6px, 1.6vh, 16px);
+  }
+  /* Heading + animated sticker run ~40% larger on phones so the hero fills the
+     small screen rather than floating in the middle of it. (min values ×1.4:
+     word 38→53px; card 140→196 / 200→280.) */
+  .hero-word {
+    font-size: clamp(53px, 13vw, 96px);
+  }
+  .hero-card {
+    --hero-card-w: clamp(196px, 52vw, 260px);
+    --hero-card-h: clamp(280px, 74vw, 372px);
+  }
+  /* The speech bubble is absolutely positioned above the card. Stacked, that
+     lands it on top of "Hey, I'm", so reserve its height (~36px bubble + 18px
+     offset) as clearance above the card. */
+  .hero-tilt {
+    margin-top: 46px;
+  }
+}
+
+/* Work-page filter chips — capsule targets at Fitts's 44px minimum, with the
+   selected state carried by fill (not just colour) so it survives a
+   grayscale/low-vision read. */
+.work-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1.15rem;
+  border-radius: 100rem;
+  border: 1px solid color-mix(in oklch, var(--color-ink) 18%, transparent);
+  background: transparent;
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-normal) var(--ease-out-expo),
+    border-color var(--duration-normal) var(--ease-out-expo),
+    color var(--duration-normal) var(--ease-out-expo);
+}
+.work-filter:hover {
+  border-color: color-mix(in oklch, var(--color-ink) 42%, transparent);
+}
+.work-filter.is-active {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-canvas);
+}
+.work-filter-count {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  opacity: 0.55;
+}
+
+/* Claymorphism — soft, inflated shapes. One broad ambient drop shadow lifts
+   the piece off the surface, then a light inset from the top-left and a dark
+   inset from the bottom-right round it out, so each chip reads as a squishy
+   piece of clay instead of a flat swatch. The crisp 1px border is dropped;
+   the insets define the edge. Tint strengths are swapped per chip because a
+   pale chip needs a brighter highlight than a saturated one. */
+.clay {
+  --clay-light: rgba(255, 255, 255, 0.5);
+  --clay-dark: rgba(0, 0, 0, 0.22);
+  border: none !important;
+  box-shadow:
+    0 12px 24px -8px rgba(0, 0, 0, 0.5),
+    0 3px 7px -2px rgba(0, 0, 0, 0.3),
+    inset 5px 6px 11px -3px var(--clay-light),
+    inset -5px -6px 11px -3px var(--clay-dark);
+}
+.clay-light {
+  --clay-light: rgba(255, 255, 255, 0.9);
+  --clay-dark: rgba(0, 0, 0, 0.15);
+}
+.clay-dark {
+  --clay-light: rgba(255, 255, 255, 0.24);
+  --clay-dark: rgba(0, 0, 0, 0.34);
+}
+
+/* Footer signature — sized to span the viewport and deliberately cropped by
+   the footer's overflow, so the page ends on the name itself. */
+.footer-wordmark {
+  margin: 0.12em 0 -0.2em;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 500;
+  font-size: clamp(3.5rem, 26.5vw, 24rem);
+  line-height: 0.78;
+  letter-spacing: -0.02em;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  user-select: none;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.ref-brand {
+  /* Fitts's law / WCAG 2.5.5 — the wordmark is small type, so the flex box
+     carries the 44px hit area without changing how it looks. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-ink);
+}
+
+/* Small inline links (footer nav, socials, email) keep their visual size but
+   gain a full 44px target via padding — the negative margin stops that padding
+   from disturbing the surrounding layout. */
+.tap-safe {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 8px;
+  margin-block: -8px;
+}
+
+/* Header rides seamlessly over the cream canvas: ink text + a hairline
+   outline, instead of the old light-on-dark bar. */
+[role="banner"] .ref-toggle {
+  border-color: color-mix(in oklch, var(--color-ink) 24%, transparent);
+}
+.ref-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--ref-outline-dark);
+  border-radius: 100rem;
+  transition: border-color 0.35s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.ref-toggle:hover,
+.ref-toggle:focus-visible {
+  border-color: var(--color-accent);
+}
+.ref-toggle-line {
+  width: 37.5%;
+  height: 1px;
+  background-color: var(--color-ink);
+}
+
+.ref-drop-content {
+  background-color: #fff;
+  color: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklch, var(--color-ink) 14%, transparent);
+}
+.nav-drop-link .heading-h5 {
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rollover-top,
+  .rollover-bottom,
+  .chev {
+    transition: none;
+  }
+}
+
+/* ================================================================== */
+/* Reference "home-about" work-list section (arya-vivek.webflow.io)    */
+/* ================================================================== */
+.ref-about {
+  background-color: var(--ref-bg-dark);
+  color: #fff;
+}
+/* Section title that rises out of a clip mask */
+.ref-row-title-clip {
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: bottom;
+  line-height: 0.9;
+}
+.ref-row-title-text {
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: clamp(2.5rem, 8vw, 7rem);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  display: inline-flex;
+}
+
+/* Services heading — the clip-mask letter animation at the site's own heading
+   scale (matches .type-h2) instead of the reference port's 7rem uppercase. */
+/* Services rows live on the cream canvas now, so the reference port's
+   white-on-dark row treatment is re-pointed at the site's ink/line tokens. */
+#services .ref-work-item {
+  color: var(--color-ink);
+}
+#services .ref-work-title {
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-size: clamp(1.25rem, 2.6vw, 2rem);
+}
+#services .ref-line {
+  background-color: var(--color-line);
+}
+#services .ref-line-fill {
+  background-color: var(--color-ink);
+}
+.ref-row-title-text .ref-letter {
+  display: inline-block;
+  white-space: pre;
+}
+
+/* Work list rows */
+.ref-work-list {
+  display: flex;
+  flex-direction: column;
+}
+.ref-work-item {
+  position: relative;
+  display: block;
+  color: #fff;
+  text-decoration: none;
+}
+.ref-work-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr 1fr;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.75rem 0;
+}
+@media (max-width: 767px) {
+  .ref-work-grid {
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem;
+    padding: 1.25rem 0;
+  }
+  .ref-work-image-col {
+    display: none;
+  }
+}
+.ref-work-title {
+  font-family: var(--font-sans), sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: clamp(1.5rem, 3.2vw, 2.75rem);
+  line-height: 1;
+  transition: color 0.35s cubic-bezier(0.6, 0, 0.2, 1);
+}
+/* Category rollover clip (top slides up, bottom slides in) */
+.ref-clip-swap {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+.ref-clip-swap-top,
+.ref-clip-swap-bottom {
+  display: block;
+  transition: transform 0.45s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.ref-clip-swap-bottom {
+  position: absolute;
+  inset: 0;
+  transform: translateY(110%);
+}
+.ref-work-item:hover .ref-clip-swap-top {
+  transform: translateY(-110%);
+}
+.ref-work-item:hover .ref-clip-swap-bottom {
+  transform: translateY(0);
+}
+.ref-work-item:hover .ref-work-title {
+  color: var(--color-accent);
+}
+
+/* Hover-reveal image */
+.ref-work-image-col {
+  justify-self: end;
+  width: 100%;
+  max-width: 220px;
+}
+.ref-work-image {
+  position: relative;
+  width: 100%;
+  padding-top: 62%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.ref-work-image-inner {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transform: scale(0.72);
+  opacity: 0;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.5s ease;
+}
+.ref-work-item:hover .ref-work-image-inner {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Animated fill line under each row */
+.ref-line {
+  position: relative;
+  height: 1px;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.ref-line-fill {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.6);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ref-clip-swap-top,
+  .ref-clip-swap-bottom,
+  .ref-work-title,
+  .ref-work-image-inner {
+    transition: none;
+  }
 }

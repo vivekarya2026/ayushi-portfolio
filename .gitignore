@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# stray duplicate of the hero sticker (real assets live in public/images/hero/stickers/)
+/Ayushi Dubey.png
